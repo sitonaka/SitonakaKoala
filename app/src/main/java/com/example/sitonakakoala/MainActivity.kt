@@ -13,6 +13,8 @@ import com.example.sitonakakoala.screen.HomeScreen
 import com.example.sitonakakoala.screen.MainAlertDialog
 import com.example.sitonakakoala.ui.theme.SitonakaKoalaTheme
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -53,6 +55,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Instance = this
+        loggerTest()
         enableEdgeToEdge()
         setContent {
             SitonakaKoalaTheme {
@@ -79,4 +82,14 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    private fun loggerTest() {
+        logger.trace("Logger TEST")
+        logger.debug("Logger TEST")
+        logger.info("Logger TEST")
+        logger.warn("Logger TEST")
+        logger.error("Logger TEST")
+    }
 }
+
+val logger: Logger by lazy { LoggerFactory.getLogger("SitonakaKoala") }
