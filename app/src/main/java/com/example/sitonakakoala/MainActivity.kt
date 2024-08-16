@@ -4,13 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Modifier
-import com.example.sitonakakoala.screen.HomeScreen
 import com.example.sitonakakoala.screen.MainAlertDialog
+import com.example.sitonakakoala.screen.MultiScreen
 import com.example.sitonakakoala.ui.theme.SitonakaKoalaTheme
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.slf4j.Logger
@@ -59,11 +55,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SitonakaKoalaTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    HomeScreen(
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                MultiScreen()
                 val confirm = confirmFlow.collectAsState()
                 val dismiss = dismissFlow.collectAsState()
                 val title = titleFlow.collectAsState()
