@@ -1,10 +1,13 @@
 package com.example.sitonakakoala
 
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
+import androidx.core.app.ActivityCompat
 import com.example.sitonakakoala.screen.MainAlertDialog
 import com.example.sitonakakoala.screen.MultiScreen
 import com.example.sitonakakoala.ui.theme.SitonakaKoalaTheme
@@ -26,6 +29,9 @@ class MainActivity : ComponentActivity() {
             title: String? = null
         ): Boolean {
             return Instance.showAlertDialog(confirm, dismiss, title, text)
+        }
+        suspend fun location(): String {
+            return Instance.getCurrentLocation()
         }
     }
 
@@ -72,6 +78,46 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    private lateinit var permissionContinuation: Continuation<Boolean>
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        logger.info("RequestMultiplePermissions {}", permissions)
+        when {
+            permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
+                permissionContinuation.resume(true)
+            }
+            else -> {
+                permissionContinuation.resume(false)
+            }
+        }
+    }
+    private suspend fun getPermission() = suspendCoroutine { continuation ->
+        permissionContinuation = continuation
+        requestPermissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        )
+    }
+    private suspend fun getCurrentLocation(): String {
+        val granted = getPermission()
+        if (granted) {
+            logger.trace("getPermission granted.")
+            return "Sample location data"
+        } else {
+            val shouldShow = ActivityCompat.shouldShowRequestPermissionRationale(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+            if (shouldShow) {
+                dialog("App need ACCESS_FINE_LOCATION")
+            }
+            throw Exception("Permission denied.")
         }
     }
 
