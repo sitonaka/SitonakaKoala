@@ -1,6 +1,8 @@
 package com.example.sitonakakoala
 
 import android.Manifest
+import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,11 +13,15 @@ import androidx.core.app.ActivityCompat
 import com.example.sitonakakoala.screen.MainAlertDialog
 import com.example.sitonakakoala.screen.MultiScreen
 import com.example.sitonakakoala.ui.theme.SitonakaKoalaTheme
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 class MainActivity : ComponentActivity() {
@@ -58,6 +64,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         Instance = this
         loggerTest()
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         enableEdgeToEdge()
         setContent {
             SitonakaKoalaTheme {
@@ -104,20 +111,46 @@ class MainActivity : ComponentActivity() {
             )
         )
     }
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private suspend fun getLocationOneShot(lastLocation: Task<Location>) = suspendCoroutine {
+        logger.trace("getLocationOneShot")
+        logger.trace("addOnSuccessListener")
+        lastLocation.addOnSuccessListener { location ->
+            logger.trace("OnSuccessListener")
+            if (location == null) {
+                it.resumeWithException(Exception("location is null"))
+            }
+            val text = "${location.latitude},${location.longitude}"
+            it.resume(text)
+        }
+        logger.trace("addOnFailureListener")
+        lastLocation.addOnFailureListener { exception ->
+            logger.trace("OnFailureListener")
+            it.resumeWithException(exception)
+        }
+    }
     private suspend fun getCurrentLocation(): String {
-        val granted = getPermission()
-        if (granted) {
-            logger.trace("getPermission granted.")
-            return "Sample location data"
-        } else {
-            val shouldShow = ActivityCompat.shouldShowRequestPermissionRationale(
+        if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            )
-            if (shouldShow) {
-                dialog("App need ACCESS_FINE_LOCATION")
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            return getLocationOneShot(fusedLocationClient.lastLocation)
+        } else {
+            val granted = getPermission()
+            if (granted) {
+                logger.trace("getPermission granted.")
+                return getLocationOneShot(fusedLocationClient.lastLocation)
+            } else {
+                val shouldShow = ActivityCompat.shouldShowRequestPermissionRationale(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+                if (shouldShow) {
+                    dialog("App need ACCESS_FINE_LOCATION")
+                }
+                throw Exception("Permission denied.")
             }
-            throw Exception("Permission denied.")
         }
     }
 
