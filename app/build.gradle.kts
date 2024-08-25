@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.slf4j.api)
     implementation(libs.logback.android)
     implementation(libs.play.services.location)
+    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

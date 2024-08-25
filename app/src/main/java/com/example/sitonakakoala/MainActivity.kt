@@ -11,7 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
 import androidx.core.app.ActivityCompat
 import com.example.sitonakakoala.screen.MainAlertDialog
-import com.example.sitonakakoala.screen.MultiScreen
+import com.example.sitonakakoala.screen.MainScreen
 import com.example.sitonakakoala.ui.theme.SitonakaKoalaTheme
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -68,7 +68,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SitonakaKoalaTheme {
-                MultiScreen()
+                MainScreen()
                 val confirm = confirmFlow.collectAsState()
                 val dismiss = dismissFlow.collectAsState()
                 val title = titleFlow.collectAsState()
