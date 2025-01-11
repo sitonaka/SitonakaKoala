@@ -63,6 +63,8 @@ dependencies {
     implementation(libs.logback.android)
     implementation(libs.play.services.location)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
