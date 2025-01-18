@@ -13,23 +13,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.sitonakakoala.MainActivity
 import com.example.sitonakakoala.ui.theme.SitonakaKoalaTheme
-import kotlinx.coroutines.delay
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.launch
 
 @Composable
 fun CommScreen(modifier: Modifier = Modifier) {
     val scope = rememberCoroutineScope()
     var login by rememberSaveable { mutableStateOf("sitonaka") }
-    var response by rememberSaveable { mutableStateOf("") }
+    var responseBody by rememberSaveable { mutableStateOf("") }
     Column(modifier = modifier) {
         Text(text = "Login:  $login")
         Button(onClick = {
             scope.launch {
                 runCatching {
-                    delay(3_000)
-                    "success"
+                    val client = HttpClient(CIO)
+                    val response = client.get("https://api.github.com/users/$login")
+                    response.bodyAsText()
                 }.onSuccess {
-                    response = it
+                    responseBody = it
                 }.onFailure {
                     MainActivity.dialog(it.localizedMessage ?: "error")
                 }
@@ -37,7 +41,7 @@ fun CommScreen(modifier: Modifier = Modifier) {
         }) {
             Text(text = "USERS API")
         }
-        Text(text = response)
+        Text(text = responseBody)
     }
 }
 
