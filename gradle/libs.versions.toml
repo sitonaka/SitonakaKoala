@@ -12,7 +12,7 @@ slf4jApi = "2.0.16"
 logbackAndroid = "3.0.0"
 playServicesLocation = "21.3.0"
 navigationCompose = "2.7.7"
-ktorClient = "3.0.3"
+ktorClient = "2.3.13"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
