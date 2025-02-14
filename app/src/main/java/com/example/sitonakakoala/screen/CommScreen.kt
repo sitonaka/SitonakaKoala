@@ -12,12 +12,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.sitonakakoala.MainActivity
+import com.example.sitonakakoala.server.GHUsers
 import com.example.sitonakakoala.ui.theme.SitonakaKoalaTheme
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 
 @Composable
 fun CommScreen(modifier: Modifier = Modifier) {
@@ -29,11 +33,20 @@ fun CommScreen(modifier: Modifier = Modifier) {
         Button(onClick = {
             scope.launch {
                 runCatching {
-                    val client = HttpClient(CIO)
-                    val response = client.get("https://api.github.com/users/$login")
-                    response.bodyAsText()
-                }.onSuccess {
-                    responseBody = it
+                    HttpClient(CIO) {
+                        install(ContentNegotiation) {
+                            json(
+                                Json {
+                                    prettyPrint = true
+                                    isLenient = true
+                                    ignoreUnknownKeys = true
+                                }
+                            )
+                        }
+                    }.use { client ->
+                        val ghUsers: GHUsers = client.get("https://api.github.com/users/$login").body()
+                        responseBody = "${ghUsers.login} ${ghUsers.publicRepos} ${ghUsers.updatedAt}"
+                    }
                 }.onFailure {
                     MainActivity.dialog(it.localizedMessage ?: "error")
                 }
