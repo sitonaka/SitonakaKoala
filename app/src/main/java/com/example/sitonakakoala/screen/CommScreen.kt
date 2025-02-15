@@ -18,6 +18,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.launch
@@ -43,6 +44,7 @@ fun CommScreen(modifier: Modifier = Modifier) {
                                 }
                             )
                         }
+                        install(Logging)
                     }.use { client ->
                         val ghUsers: GHUsers = client.get("https://api.github.com/users/$login").body()
                         responseBody = "${ghUsers.login} ${ghUsers.publicRepos} ${ghUsers.updatedAt}"
