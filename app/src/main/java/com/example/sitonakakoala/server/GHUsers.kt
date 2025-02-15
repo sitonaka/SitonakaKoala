@@ -1,10 +1,14 @@
 package com.example.sitonakakoala.server
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Entity(tableName = "git_hub_users")
 @Serializable
 data class GHUsers(
+    @PrimaryKey
     @SerialName("id")
     val id: Int,
     @SerialName("login")
