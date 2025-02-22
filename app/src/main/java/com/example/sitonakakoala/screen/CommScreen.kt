@@ -1,11 +1,16 @@
 package com.example.sitonakakoala.screen
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -21,11 +26,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.sitonakakoala.MainActivity
 import com.example.sitonakakoala.database.MyDatabase
+import com.example.sitonakakoala.logger
+import com.example.sitonakakoala.screen.dialog.LoginInputDialog
 import com.example.sitonakakoala.server.GHUsers
 import com.example.sitonakakoala.ui.theme.SitonakaKoalaTheme
 import io.ktor.client.HttpClient
@@ -44,35 +52,62 @@ fun CommScreen(modifier: Modifier = Modifier) {
     val dao = MyDatabase.getDatabase(LocalContext.current).ghDao()
     val users = dao.getAllUsersFlow().collectAsState(initial = listOf())
     var login by rememberSaveable { mutableStateOf("sitonaka") }
+    var isShowInputDialog by rememberSaveable { mutableStateOf(false) }
     Column(modifier = modifier) {
-        Text(text = "Login:  $login")
-        Button(onClick = {
-            scope.launch {
-                runCatching {
-                    HttpClient(CIO) {
-                        install(ContentNegotiation) {
-                            json(
-                                Json {
-                                    prettyPrint = true
-                                    isLenient = true
-                                    ignoreUnknownKeys = true
-                                }
-                            )
-                        }
-                        install(Logging)
-                    }.use { client ->
-                        val ghUsers: GHUsers = client.get("https://api.github.com/users/$login").body()
-                        dao.insertUsers(ghUsers)
+        Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(text = "Login:")
+            Spacer(modifier = Modifier.width(8.dp))
+            Box(
+                modifier = Modifier
+                    .weight(1F)
+                    .wrapContentHeight()
+                    .background(Color.LightGray)
+                    .clickable {
+                        logger.trace("Box onClick")
+                        isShowInputDialog = true
                     }
-                }.onFailure {
-                    MainActivity.dialog(it.localizedMessage ?: "error")
-                }
+            ) {
+                Text(text = login)
             }
-        }) {
-            Text(text = "USERS API")
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = {
+                scope.launch {
+                    runCatching {
+                        HttpClient(CIO) {
+                            expectSuccess = true
+                            install(ContentNegotiation) {
+                                json(
+                                    Json {
+                                        prettyPrint = true
+                                        isLenient = true
+                                        ignoreUnknownKeys = true
+                                    }
+                                )
+                            }
+                            install(Logging)
+                        }.use { client ->
+                            val ghUsers: GHUsers =
+                                client.get("https://api.github.com/users/$login").body()
+                            dao.insertUsers(ghUsers)
+                        }
+                    }.onFailure {
+                        MainActivity.dialog(it.localizedMessage ?: "error")
+                    }
+                }
+            }) {
+                Text(text = "USERS API")
+            }
         }
         HorizontalDivider()
         UsersItems(list = users.value)
+    }
+    if (isShowInputDialog) {
+        LoginInputDialog(onDismiss = {
+            isShowInputDialog = false
+        }) {
+            isShowInputDialog = false
+            login = it
+        }
     }
 }
 
